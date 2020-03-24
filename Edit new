@@ -1,0 +1,56 @@
+<?php
+session_start();
+if (isset($_POST['open'])) { 
+    if (empty($_POST['filename']))
+    {$info_input = 'Не введено имя файла';}
+    else 
+    {$_SESSION['file']=$_POST['filename'];}} //при нажатии кнопки открыть имя файла записывается в сессию для использования в дальнейшем
+$file=$_SESSION['file'];
+$temp=isset($_POST['temp'])?$_POST['temp']:'';
+$edit=isset($_POST['edit'])?$_POST['edit']:'';
+if ($edit=='Edit')
+    { file_put_contents($file,$temp); 
+    unset($_SESSION['file']);
+    header('Location:#');} // при нажатии кнопки сохранения данные записываются в файл и обнавляется страница
+$temp=file_get_contents($file);
+?>
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+<table>
+<tr>
+<td>
+<form method='post'>
+<input type='text' name='filename'>
+<input type='submit' name='open' value='Open file'>
+</form>
+<br>
+Для редактирования открыт файл: <?php echo ($_SESSION['file']) ?>
+<br>
+<br>
+<form method='post'>
+<textarea name='temp' cols='100%' rows='30'><?php echo htmlspecialchars($temp) ?></textarea><br>
+<input type='submit' name='edit' value='Edit'>
+</form>
+</td>
+<td width="100px">
+</td>
+<td>
+<p>Дерево файлов:<p><br>
+<?php
+  function showTree($folder, $space) {
+      $files = scandir($folder);
+      foreach($files as $file) {
+      if (($file == '.') || ($file == '..')) continue;
+      $f0 = $folder.'/'.$file; 
+      if (is_dir($f0)) {
+      //echo $file."<br />"; //если необходимо отображать названия папок то раскоментировать
+      showTree($f0, $space.'&nbsp;&nbsp;&nbsp;&nbsp;');} //отступ перед названиями файлов в каталогах
+      else echo $space.$f0. "<br />";}}
+  showTree(".", "");
+?>
+</td>
+</tr>
+</body>
