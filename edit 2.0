@@ -1,0 +1,108 @@
+<?php //файл поместить в деректорию сайта и можно редактировать любой файл, удалять и создавать файлы и папки.
+      //при указании имени файла не забываем указывать полный путь до файла, и наче он будет создан в верхней директории сайта
+session_start();
+//ini_set('display_errors',1);//выводит ошибки при проверке кода 
+//error_reporting(E_ALL);//если необходимы, раскоментировать
+//при нажатии кнопки открыть имя файла записывается в сессию для использования в дальнейшем
+if (isset($_POST['open'])) { 
+    if (empty($_POST['filename']))
+    {$info_input = 'Не введено имя';}
+    else 
+    {$_SESSION['file']=$_POST['filename'];}}
+//создает файл с указанным именем и открывает его на редактирование
+if (isset($_POST['new'])) { 
+    if (empty($_POST['filename']))
+    {$info_input = 'Не введено имя';}
+    else 
+    {$_SESSION['file']=$_POST['filename'];}}
+//удалят указанный файл
+if (isset($_POST['delete'])) { //если нажата кнопка, то
+    if (empty($_POST['filename'])) //проверяет введено ли имя
+    {$info_input = 'Не введено имя';}
+    else 
+    {$_SESSION['file']=$_POST['filename']; //если введено то записывает его в сессию
+     unlink ($_SESSION['file']); //удаляет файл с именем записанным в сессию
+     unset($_SESSION['file']); //очищает сессию
+     header('Location:#');}} //обнавляет страницу
+//создает папку с указанным именем
+if (isset($_POST['nf'])) { 
+    if (empty($_POST['filename']))
+    {$info_input = 'Не введено имя';}
+    else 
+    {$_SESSION['file']=$_POST['filename'];}
+    if (is_dir($_SESSION['file']))//проверяет нет ли с таким именем уже папки
+    {header('Location:#');} //если есть то просто обнавляет страницу
+    else
+    {mkdir($_SESSION['file'], 0777, true);//если нет то создает папку с полными правами на редактирование
+    unset($_SESSION['file']);
+    header('Location:#');}}
+//удаляет папку с указанным именем
+if (isset($_POST['df'])) { 
+    if (empty($_POST['filename']))
+    {$info_input = 'Не введено имя';}
+    else 
+    {$_SESSION['file']=$_POST['filename'];}
+    if (!is_dir($_SESSION['file']))
+    {header('Location:#');}
+    else
+    {rmdir($_SESSION['file']);//удаляет папку
+    unset($_SESSION['file']);
+    header('Location:#');}}    
+
+$file=$_SESSION['file'];
+$temp=isset($_POST['temp'])?$_POST['temp']:''; //обнуляет все поля
+$edit=isset($_POST['edit'])?$_POST['edit']:'';
+if ($edit=='Edit')
+    { file_put_contents($file,$temp); //сохраняет файл с измененным содержимым
+    unset($_SESSION['file']);
+    header('Location:#');} // при нажатии кнопки сохранения данные записываются в файл и обнавляется страница
+$temp=file_get_contents($file); // помещает данные файла в окно для редактирования
+?>
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+<table>
+<tr>
+<td>
+<form method='post'>
+<input type='text' name='filename'>
+<input type='submit' name='open' value='Open file'>
+&emsp;
+<input type='submit' name='new' value='New file'>
+&emsp;
+<input type='submit' name='delete' value='Delete file'>
+&emsp;
+<input type='submit' name='nf' value='New folder'>
+&emsp;
+<input type='submit' name='df' value='Delete folder'>
+</form>
+<br>
+Для редактирования открыт файл: <?php echo ($_SESSION['file']) ?>
+<br>
+<br>
+<form method='post'>
+<textarea name='temp' cols='100%' rows='30'><?php echo htmlspecialchars($temp) ?></textarea><br>
+<input type='submit' name='edit' value='Edit'>
+</form>
+</td>
+<td width="100px">
+</td>
+<td>
+<p>Дерево файлов:<p><br>
+<?php
+  function showTree($folder, $space) {
+      $files = scandir($folder);
+      foreach($files as $file) {
+      if (($file == '.') || ($file == '..')) continue;
+      $f0 = $folder.'/'.$file; 
+      if (is_dir($f0)) {
+      echo $f0."<br />"; //отображает названия папок 
+      showTree($f0, $space.'');} //отступ перед названиями файлов в каталогах
+      else echo $space.$f0. "<br />";}}
+  showTree(".", "");
+?>
+</td>
+</tr>
+</body>
